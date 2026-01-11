@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo, useCallback } from 'react';
 import { View, StyleSheet, ScrollView } from 'react-native';
 import { Text, Card, Button, ProgressBar } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -29,8 +29,8 @@ const MOCK_DATA = {
   },
 };
 
-function NutritionRing({ label, current, target, color }) {
-  const progress = Math.min(current / target, 1);
+const NutritionRing = React.memo(function NutritionRing({ label, current, target, color }) {
+  const progress = useMemo(() => Math.min(current / target, 1), [current, target]);
 
   return (
     <View style={styles.nutritionRing}>
@@ -46,7 +46,7 @@ function NutritionRing({ label, current, target, color }) {
       <Text style={styles.ringTarget}>of {target}</Text>
     </View>
   );
-}
+});
 
 export default function DashboardScreen({ navigation }) {
   const { userProfile, logout } = useAuthStore();

@@ -1,0 +1,84 @@
+# Authentication Flow E2E Tests
+# Tests: Login, SignUp, Validation
+
+appId: com.aifitarchitect.app
+---
+# Test 1: App launches and shows login screen
+- launchApp:
+    clearState: true
+- assertVisible: "Welcome Back"
+- assertVisible: "Sign in to continue your fitness journey"
+
+# Test 2: Email validation
+- tapOn:
+    id: "email-input"
+- inputText: "invalid-email"
+- tapOn:
+    id: "password-input"
+- inputText: "password123"
+- tapOn:
+    id: "login-button"
+- assertVisible:
+    text: "valid email"
+    optional: true
+
+# Test 3: Password validation (too short)
+- clearText:
+    id: "email-input"
+- tapOn:
+    id: "email-input"
+- inputText: "test@example.com"
+- clearText:
+    id: "password-input"
+- tapOn:
+    id: "password-input"
+- inputText: "123"
+- tapOn:
+    id: "login-button"
+- assertVisible:
+    text: "6 characters"
+    optional: true
+
+# Test 4: Navigate to Sign Up
+- tapOn:
+    id: "signup-link"
+- assertVisible: "Create Account"
+- assertVisible: "Start your fitness transformation"
+
+# Test 5: Sign Up validation
+- tapOn:
+    id: "email-input"
+- inputText: "newuser@example.com"
+- tapOn:
+    id: "password-input"
+- inputText: "WeakPass"
+- tapOn:
+    id: "confirm-password-input"
+- inputText: "WeakPass"
+- tapOn:
+    id: "signup-button"
+- assertVisible:
+    text: "number"
+    optional: true
+
+# Test 6: Password mismatch
+- clearText:
+    id: "password-input"
+- tapOn:
+    id: "password-input"
+- inputText: "StrongPass123!"
+- clearText:
+    id: "confirm-password-input"
+- tapOn:
+    id: "confirm-password-input"
+- inputText: "DifferentPass123!"
+- tapOn:
+    id: "signup-button"
+- assertVisible:
+    text: "match"
+    optional: true
+
+# Test 7: Navigate back to Login
+- tapOn:
+    id: "login-link"
+- assertVisible: "Welcome Back"

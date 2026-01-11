@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { View, StyleSheet, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
 import { TextInput, Button, Text, HelperText, Checkbox } from 'react-native-paper';
 import { colors, spacing, borderRadius, typography } from '../../theme';
 import { useAuthStore } from '../../store/authStore';
+import { hapticPatterns } from '../../utils/haptics';
 
 export default function SignUpScreen({ navigation }) {
   const [email, setEmail] = useState('');
@@ -23,11 +24,35 @@ export default function SignUpScreen({ navigation }) {
     return emailRegex.test(email);
   };
 
-  const validatePassword = (password) => {
+  const validatePassword = useCallback((password) => {
     // At least 8 characters, 1 uppercase, 1 lowercase, 1 number
     const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
     return passwordRegex.test(password);
-  };
+  }, []);
+
+  // onBlur validation for email
+  const handleEmailBlur = useCallback(() => {
+    if (email && !validateEmail(email)) {
+      setEmailError('Please enter a valid email');
+      hapticPatterns.validationError();
+    }
+  }, [email, validateEmail]);
+
+  // onBlur validation for password
+  const handlePasswordBlur = useCallback(() => {
+    if (password && !validatePassword(password)) {
+      setPasswordError('Password must be at least 8 characters with uppercase, lowercase, and number');
+      hapticPatterns.validationError();
+    }
+  }, [password, validatePassword]);
+
+  // onBlur validation for confirm password
+  const handleConfirmPasswordBlur = useCallback(() => {
+    if (confirmPassword && password !== confirmPassword) {
+      setConfirmPasswordError('Passwords do not match');
+      hapticPatterns.validationError();
+    }
+  }, [password, confirmPassword]);
 
   const handleSignUp = async () => {
     clearError();
@@ -103,6 +128,7 @@ export default function SignUpScreen({ navigation }) {
               setEmailError('');
               clearError();
             }}
+            onBlur={handleEmailBlur}
             mode="outlined"
             keyboardType="email-address"
             autoCapitalize="none"
@@ -112,6 +138,9 @@ export default function SignUpScreen({ navigation }) {
             outlineColor={colors.border}
             activeOutlineColor={colors.primary}
             textColor={colors.text}
+            accessible={true}
+            accessibilityLabel="Email input field"
+            accessibilityHint="Enter your email address"
           />
           {emailError ? (
             <HelperText type="error" visible={!!emailError}>
@@ -128,6 +157,7 @@ export default function SignUpScreen({ navigation }) {
               setPasswordError('');
               clearError();
             }}
+            onBlur={handlePasswordBlur}
             mode="outlined"
             secureTextEntry={!showPassword}
             error={!!passwordError}
@@ -135,11 +165,15 @@ export default function SignUpScreen({ navigation }) {
             outlineColor={colors.border}
             activeOutlineColor={colors.primary}
             textColor={colors.text}
+            accessible={true}
+            accessibilityLabel="Password input field"
+            accessibilityHint="Create a password with at least 8 characters, including uppercase, lowercase, and a number"
             right={
               <TextInput.Icon
                 icon={showPassword ? 'eye-off' : 'eye'}
                 onPress={() => setShowPassword(!showPassword)}
                 color={colors.textSecondary}
+                accessibilityLabel={showPassword ? 'Hide password' : 'Show password'}
               />
             }
           />
@@ -158,6 +192,7 @@ export default function SignUpScreen({ navigation }) {
               setConfirmPasswordError('');
               clearError();
             }}
+            onBlur={handleConfirmPasswordBlur}
             mode="outlined"
             secureTextEntry={!showPassword}
             error={!!confirmPasswordError}
@@ -165,6 +200,9 @@ export default function SignUpScreen({ navigation }) {
             outlineColor={colors.border}
             activeOutlineColor={colors.primary}
             textColor={colors.text}
+            accessible={true}
+            accessibilityLabel="Confirm password input field"
+            accessibilityHint="Re-enter your password to confirm"
           />
           {confirmPasswordError ? (
             <HelperText type="error" visible={!!confirmPasswordError}>

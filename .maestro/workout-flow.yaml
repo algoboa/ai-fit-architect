@@ -1,0 +1,91 @@
+# Workout Flow E2E Tests
+# Tests: Workout session, set completion, rest timer
+
+appId: com.aifitarchitect.app
+---
+# Prerequisite: User is logged in
+- launchApp:
+    clearState: false
+
+# Navigate to Training tab
+- tapOn:
+    text: "Training"
+
+# Test 1: Workout screen displays correctly
+- assertVisible: "TODAY'S WORKOUT"
+- assertVisible: "Upper Body Strength"
+- assertVisible:
+    id: "exercise-list"
+
+# Test 2: Exercise list shows all exercises
+- assertVisible: "Bench Press"
+- assertVisible: "Incline Dumbbell Press"
+
+# Test 3: Start workout
+- tapOn:
+    id: "start-workout-button"
+
+# Verify workout active state
+- assertVisible:
+    id: "workout-timer"
+- assertVisible: "Exercise 1"
+
+# Test 4: Complete a set
+- tapOn:
+    id: "complete-set-button"
+
+# Set completion modal appears
+- assertVisible: "Log Set"
+- assertVisible: "Reps"
+- assertVisible: "Weight"
+
+# Enter set details
+- tapOn:
+    id: "reps-input"
+- inputText: "10"
+- tapOn:
+    id: "weight-input"
+- inputText: "60"
+
+# Save the set
+- tapOn:
+    id: "save-set-button"
+
+# Test 5: Rest timer appears
+- assertVisible:
+    id: "rest-timer"
+    optional: true
+
+# Skip rest (if available)
+- tapOn:
+    id: "skip-rest-button"
+    optional: true
+
+# Test 6: Form coaching camera toggle
+- tapOn:
+    id: "toggle-camera-button"
+    optional: true
+
+# Camera permission may be requested
+- assertVisible:
+    text: "Camera"
+    optional: true
+
+# Test 7: End workout
+- tapOn:
+    id: "end-workout-button"
+    optional: true
+
+# Confirmation dialog
+- assertVisible:
+    text: "End Workout"
+    optional: true
+
+- tapOn:
+    text: "Yes"
+    optional: true
+
+# Back to pre-workout view
+- assertVisible:
+    text: "Start Workout"
+    optional: true

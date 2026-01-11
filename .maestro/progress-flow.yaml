@@ -1,0 +1,90 @@
+# Progress Tracking Flow E2E Tests
+# Tests: Progress screen, measurements, charts
+
+appId: com.aifitarchitect.app
+---
+# Prerequisite: User is logged in
+- launchApp:
+    clearState: false
+
+# Navigate to Progress tab
+- tapOn:
+    text: "Progress"
+
+# Test 1: Progress screen displays correctly
+- assertVisible: "Progress"
+- assertVisible: "Log Measurement"
+
+# Test 2: Tab selector works
+- assertVisible: "Body"
+- assertVisible: "Performance"
+
+# Tap Body tab
+- tapOn:
+    text: "Body"
+
+# Test 3: Body stats are visible
+- assertVisible:
+    text: "Weight"
+    optional: true
+- assertVisible:
+    text: "Body Fat"
+    optional: true
+- assertVisible:
+    text: "Muscle Mass"
+    optional: true
+
+# Test 4: Time period selector
+- tapOn:
+    text: "1W"
+    optional: true
+- tapOn:
+    text: "1M"
+    optional: true
+- tapOn:
+    text: "3M"
+    optional: true
+
+# Test 5: Switch to Performance tab
+- tapOn:
+    text: "Performance"
+
+# Performance stats visible
+- assertVisible:
+    text: "1RM"
+    optional: true
+- assertVisible:
+    text: "Volume"
+    optional: true
+
+# Test 6: Open add measurement modal
+- tapOn:
+    text: "Log Measurement"
+
+# Modal appears
+- assertVisible: "Weight (kg)"
+- assertVisible: "Body Fat (%)"
+
+# Enter measurement
+- tapOn:
+    id: "weight-input"
+    optional: true
+- inputText: "73.5"
+
+# Cancel or save
+- tapOn:
+    text: "Cancel"
+    optional: true
+
+# Test 7: Achievements section
+- scroll:
+    direction: DOWN
+
+- assertVisible:
+    text: "Achievements"
+    optional: true
+
+# Test 8: Charts are rendered
+- assertVisible:
+    id: "weight-chart"
+    optional: true

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { View, StyleSheet, ScrollView, Image } from 'react-native';
 import {
   Text,
@@ -17,6 +17,7 @@ import { colors, spacing, typography, borderRadius } from '../theme';
 import { useMealsStore } from '../store/mealsStore';
 import { useAuthStore } from '../store/authStore';
 import CameraModal from '../components/CameraModal';
+import logger from '../utils/logger';
 
 const NUTRITION_TARGETS = {
   calories: 2200,
@@ -27,8 +28,11 @@ const NUTRITION_TARGETS = {
 
 const MEAL_TYPES = ['breakfast', 'lunch', 'dinner', 'snack'];
 
-function MealSection({ title, meals, icon }) {
-  const sectionCalories = meals.reduce((sum, meal) => sum + (meal.calories || 0), 0);
+const MealSection = React.memo(function MealSection({ title, meals, icon }) {
+  const sectionCalories = useMemo(
+    () => meals.reduce((sum, meal) => sum + (meal.calories || 0), 0),
+    [meals]
+  );
 
   return (
     <View style={styles.mealSection}>
@@ -75,7 +79,7 @@ function MealSection({ title, meals, icon }) {
       )}
     </View>
   );
-}
+});
 
 export default function MealLogScreen() {
   const [showCamera, setShowCamera] = useState(false);
@@ -106,15 +110,15 @@ export default function MealLogScreen() {
 
   const totals = getTodaysTotals();
 
-  const handleOpenCamera = () => {
+  const handleOpenCamera = useCallback(() => {
     setShowCamera(true);
-  };
+  }, []);
 
-  const handleCloseCamera = () => {
+  const handleCloseCamera = useCallback(() => {
     setShowCamera(false);
-  };
+  }, []);
 
-  const handlePhotoCapture = async (photo) => {
+  const handlePhotoCapture = useCallback(async (photo) => {
     setCapturedPhoto(photo);
     setShowCamera(false);
     setShowAnalysisModal(true);
@@ -122,11 +126,11 @@ export default function MealLogScreen() {
     try {
       await analyzeFood(photo.uri);
     } catch (error) {
-      console.error('Error analyzing food:', error);
+      logger.error('Error analyzing food', error);
     }
-  };
+  }, [analyzeFood]);
 
-  const handleSaveMeal = async () => {
+  const handleSaveMeal = useCallback(async () => {
     if (!analysisResult || !user) return;
 
     try {
@@ -145,15 +149,21 @@ export default function MealLogScreen() {
       setCapturedPhoto(null);
       clearAnalysis();
     } catch (error) {
-      console.error('Error saving meal:', error);
+      logger.error('Error saving meal', error);
     }
-  };
+  }, [analysisResult, user, saveMeal, selectedMealType, capturedPhoto, clearAnalysis]);
 
-  const handleCancelAnalysis = () => {
+  const handleCancelAnalysis = useCallback(() => {
     setShowAnalysisModal(false);
     setCapturedPhoto(null);
     clearAnalysis();
-  };
+  }, [clearAnalysis]);
+
+  // Memoize meal sections to prevent re-renders
+  const breakfastMeals = useMemo(() => getMealsByType('breakfast'), [todaysMeals]);
+  const lunchMeals = useMemo(() => getMealsByType('lunch'), [todaysMeals]);
+  const dinnerMeals = useMemo(() => getMealsByType('dinner'), [todaysMeals]);
+  const snackMeals = useMemo(() => getMealsByType('snack'), [todaysMeals]);
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -236,22 +246,22 @@ export default function MealLogScreen() {
         {/* Meal Sections */}
         <MealSection
           title="Breakfast"
-          meals={getMealsByType('breakfast')}
+          meals={breakfastMeals}
           icon="🍳"
         />
         <MealSection
           title="Lunch"
-          meals={getMealsByType('lunch')}
+          meals={lunchMeals}
           icon="🥗"
         />
         <MealSection
           title="Dinner"
-          meals={getMealsByType('dinner')}
+          meals={dinnerMeals}
           icon="🍽️"
         />
         <MealSection
           title="Snacks"
-          meals={getMealsByType('snack')}
+          meals={snackMeals}
           icon="🍎"
         />
       </ScrollView>

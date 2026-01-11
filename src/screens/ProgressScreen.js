@@ -1,10 +1,11 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { View, StyleSheet, ScrollView, Dimensions, Modal, TouchableOpacity } from 'react-native';
 import { Text, Card, SegmentedButtons, Button, TextInput, ActivityIndicator } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors, spacing, typography, borderRadius } from '../theme';
 import { useProgressStore } from '../store/progressStore';
 import { useAuthStore } from '../store/authStore';
+import logger from '../utils/logger';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -66,8 +67,23 @@ const MOCK_ACHIEVEMENTS = [
   { id: '3', icon: '🎯', name: 'Weight Goal -2kg', date: 'Jan 5' },
 ];
 
-function SimpleChart({ data, color, label, unit }) {
-  if (!data || data.length === 0) {
+const SimpleChart = React.memo(function SimpleChart({ data, color, label, unit }) {
+  const chartData = useMemo(() => {
+    if (!data || data.length === 0) {
+      return null;
+    }
+
+    const maxValue = Math.max(...data.map((d) => d.value));
+    const minValue = Math.min(...data.map((d) => d.value));
+    const range = maxValue - minValue || 1;
+    const latestValue = data[data.length - 1].value;
+    const firstValue = data[0].value;
+    const change = latestValue - firstValue;
+
+    return { maxValue, minValue, range, latestValue, change };
+  }, [data]);
+
+  if (!chartData) {
     return (
       <View style={styles.chartContainer}>
         <Text style={styles.chartLabel}>{label}</Text>
@@ -76,13 +92,7 @@ function SimpleChart({ data, color, label, unit }) {
     );
   }
 
-  const maxValue = Math.max(...data.map((d) => d.value));
-  const minValue = Math.min(...data.map((d) => d.value));
-  const range = maxValue - minValue || 1;
-
-  const latestValue = data[data.length - 1].value;
-  const firstValue = data[0].value;
-  const change = latestValue - firstValue;
+  const { minValue, range, latestValue, change } = chartData;
 
   return (
     <View style={styles.chartContainer}>
@@ -120,9 +130,9 @@ function SimpleChart({ data, color, label, unit }) {
       </View>
     </View>
   );
-}
+});
 
-function StatCard({ title, value, unit, change, positive }) {
+const StatCard = React.memo(function StatCard({ title, value, unit, change, positive }) {
   return (
     <Card style={styles.statCard}>
       <Card.Content style={styles.statContent}>
@@ -139,9 +149,9 @@ function StatCard({ title, value, unit, change, positive }) {
       </Card.Content>
     </Card>
   );
-}
+});
 
-function AddMeasurementModal({ visible, onClose, onSave, isLoading }) {
+const AddMeasurementModal = React.memo(function AddMeasurementModal({ visible, onClose, onSave, isLoading }) {
   const [weight, setWeight] = useState('');
   const [bodyFat, setBodyFat] = useState('');
   const [muscleMass, setMuscleMass] = useState('');
@@ -225,7 +235,7 @@ function AddMeasurementModal({ visible, onClose, onSave, isLoading }) {
       </View>
     </Modal>
   );
-}
+});
 
 export default function ProgressScreen() {
   const [activeTab, setActiveTab] = useState('body');
@@ -257,36 +267,61 @@ export default function ProgressScreen() {
     }
   }, [user?.uid, timePeriod]);
 
-  const handleAddMeasurement = async (data) => {
+  const handleAddMeasurement = useCallback(async (data) => {
     if (user?.uid) {
       try {
         await addBodyMeasurement(user.uid, data);
         setShowAddModal(false);
       } catch (error) {
-        console.error('Error saving measurement:', error);
+        logger.error('Error saving measurement', error);
       }
     }
-  };
+  }, [user?.uid, addBodyMeasurement]);
 
-  // Use real data or fall back to mock data
-  const displayWeightHistory = weightHistory.length > 0 ? weightHistory : MOCK_BODY_DATA.weight;
-  const displayBodyFatHistory = bodyFatHistory.length > 0 ? bodyFatHistory : MOCK_BODY_DATA.bodyFat;
-  const displayMuscleHistory = muscleHistory.length > 0 ? muscleHistory : MOCK_BODY_DATA.muscle;
-  const displayWeeklyVolume = weeklyVolume.length > 0 ? weeklyVolume : MOCK_PERFORMANCE_DATA.weeklyVolume;
-  const displayAchievements = achievements.length > 0 ? achievements : MOCK_ACHIEVEMENTS;
+  // Memoize display data to prevent recalculation on every render
+  const displayWeightHistory = useMemo(
+    () => (weightHistory.length > 0 ? weightHistory : MOCK_BODY_DATA.weight),
+    [weightHistory]
+  );
+  const displayBodyFatHistory = useMemo(
+    () => (bodyFatHistory.length > 0 ? bodyFatHistory : MOCK_BODY_DATA.bodyFat),
+    [bodyFatHistory]
+  );
+  const displayMuscleHistory = useMemo(
+    () => (muscleHistory.length > 0 ? muscleHistory : MOCK_BODY_DATA.muscle),
+    [muscleHistory]
+  );
+  const displayWeeklyVolume = useMemo(
+    () => (weeklyVolume.length > 0 ? weeklyVolume : MOCK_PERFORMANCE_DATA.weeklyVolume),
+    [weeklyVolume]
+  );
+  const displayAchievements = useMemo(
+    () => (achievements.length > 0 ? achievements : MOCK_ACHIEVEMENTS),
+    [achievements]
+  );
 
-  // Get latest stats for cards
-  const stats = getLatestStats();
-  const latestWeight = stats.weight.current || displayWeightHistory[displayWeightHistory.length - 1]?.value || 72.5;
-  const weightChange = stats.weight.change || (displayWeightHistory[displayWeightHistory.length - 1]?.value - displayWeightHistory[0]?.value) || -2.5;
-  const latestBodyFat = stats.bodyFat.current || displayBodyFatHistory[displayBodyFatHistory.length - 1]?.value || 20.5;
-  const bodyFatChange = stats.bodyFat.change || (displayBodyFatHistory[displayBodyFatHistory.length - 1]?.value - displayBodyFatHistory[0]?.value) || -1.5;
-  const latestMuscle = stats.muscle.current || displayMuscleHistory[displayMuscleHistory.length - 1]?.value || 33.5;
-  const muscleChange = stats.muscle.change || (displayMuscleHistory[displayMuscleHistory.length - 1]?.value - displayMuscleHistory[0]?.value) || 1.5;
+  // Memoize stats calculations
+  const { latestWeight, weightChange, latestBodyFat, bodyFatChange, latestMuscle, muscleChange, bmi } = useMemo(() => {
+    const stats = getLatestStats();
+    const weight = stats.weight.current || displayWeightHistory[displayWeightHistory.length - 1]?.value || 72.5;
+    const wChange = stats.weight.change || (displayWeightHistory[displayWeightHistory.length - 1]?.value - displayWeightHistory[0]?.value) || -2.5;
+    const bodyFat = stats.bodyFat.current || displayBodyFatHistory[displayBodyFatHistory.length - 1]?.value || 20.5;
+    const bfChange = stats.bodyFat.change || (displayBodyFatHistory[displayBodyFatHistory.length - 1]?.value - displayBodyFatHistory[0]?.value) || -1.5;
+    const muscle = stats.muscle.current || displayMuscleHistory[displayMuscleHistory.length - 1]?.value || 33.5;
+    const mChange = stats.muscle.change || (displayMuscleHistory[displayMuscleHistory.length - 1]?.value - displayMuscleHistory[0]?.value) || 1.5;
+    const height = 1.75;
+    const calculatedBmi = (weight / (height * height)).toFixed(1);
 
-  // Calculate BMI (assuming height of 1.75m for demo)
-  const height = 1.75;
-  const bmi = (latestWeight / (height * height)).toFixed(1);
+    return {
+      latestWeight: weight,
+      weightChange: wChange,
+      latestBodyFat: bodyFat,
+      bodyFatChange: bfChange,
+      latestMuscle: muscle,
+      muscleChange: mChange,
+      bmi: calculatedBmi,
+    };
+  }, [getLatestStats, displayWeightHistory, displayBodyFatHistory, displayMuscleHistory]);
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>

@@ -287,3 +287,13 @@ function getWeekNumber(date) {
   const yearStart = new Date(d.getFullYear(), 0, 1);
   return Math.ceil(((d - yearStart) / 86400000 + 1) / 7);
 }
+
+// Zustand selectors for optimized re-renders
+export const useWeightHistory = () => useProgressStore((state) => state.weightHistory);
+export const useBodyFatHistory = () => useProgressStore((state) => state.bodyFatHistory);
+export const useMuscleHistory = () => useProgressStore((state) => state.muscleHistory);
+export const useWeeklyVolume = () => useProgressStore((state) => state.weeklyVolume);
+export const usePersonalRecords = () => useProgressStore((state) => state.personalRecords);
+export const useAchievements = () => useProgressStore((state) => state.achievements);
+export const useProgressIsLoading = () => useProgressStore((state) => state.isLoading);
+export const useProgressError = () => useProgressStore((state) => state.error);

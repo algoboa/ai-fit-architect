@@ -6,6 +6,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import AuthNavigator from './src/navigation/AuthNavigator';
 import AppNavigator from './src/navigation/AppNavigator';
+import ErrorBoundary from './src/components/ErrorBoundary';
 import { useAuthStore } from './src/store/authStore';
 import { paperTheme, colors } from './src/theme';
 
@@ -39,12 +40,14 @@ function RootNavigator() {
 
 export default function App() {
   return (
-    <SafeAreaProvider>
-      <PaperProvider theme={paperTheme}>
-        <StatusBar style="light" />
-        <RootNavigator />
-      </PaperProvider>
-    </SafeAreaProvider>
+    <ErrorBoundary>
+      <SafeAreaProvider>
+        <PaperProvider theme={paperTheme}>
+          <StatusBar style="light" />
+          <RootNavigator />
+        </PaperProvider>
+      </SafeAreaProvider>
+    </ErrorBoundary>
   );
 }
 

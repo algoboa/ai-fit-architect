@@ -1,0 +1,18 @@
+# Maestro E2E Test Configuration
+# AI-Fit Architect
+
+appId: com.aifitarchitect.app
+name: AI-Fit Architect E2E Tests
+
+# Global settings
+flows:
+  - auth-flow.yaml
+  - onboarding-flow.yaml
+  - workout-flow.yaml
+  - meal-flow.yaml
+  - progress-flow.yaml
+
+# Test environment
+env:
+  TEST_USER_EMAIL: test@example.com
+  TEST_USER_PASSWORD: TestPassword123!

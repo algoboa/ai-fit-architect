@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { View, StyleSheet, ScrollView, Dimensions } from 'react-native';
 import { Text, Card, Button, IconButton, FAB, TextInput, Portal, Modal } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -7,10 +7,11 @@ import { colors, spacing, typography, borderRadius } from '../theme';
 import { useWorkoutStore } from '../store/workoutStore';
 import { useAuthStore } from '../store/authStore';
 import PoseOverlay from '../components/PoseOverlay';
+import logger from '../utils/logger';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
-function RestTimer({ timeRemaining, onSkip }) {
+const RestTimer = React.memo(function RestTimer({ timeRemaining, onSkip }) {
   const minutes = Math.floor(timeRemaining / 60);
   const seconds = timeRemaining % 60;
 
@@ -25,9 +26,9 @@ function RestTimer({ timeRemaining, onSkip }) {
       </Button>
     </View>
   );
-}
+});
 
-function ExerciseCard({ exercise, completedSets, isActive, onStart }) {
+const ExerciseCard = React.memo(function ExerciseCard({ exercise, completedSets, isActive, onStart }) {
   const setsCompleted = completedSets.length;
   const isCompleted = setsCompleted >= exercise.sets;
 
@@ -59,7 +60,7 @@ function ExerciseCard({ exercise, completedSets, isActive, onStart }) {
       </Card.Content>
     </Card>
   );
-}
+});
 
 export default function WorkoutScreen() {
   const [permission, requestPermission] = useCameraPermissions();
@@ -115,43 +116,46 @@ export default function WorkoutScreen() {
     }
   }, [isWorkoutActive, isResting, isCameraActive, restTimeRemaining]);
 
-  // Format duration as MM:SS
-  const formatDuration = (seconds) => {
+  // Memoize format duration function
+  const formatDuration = useCallback((seconds) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-  };
+  }, []);
 
-  const handleStartWorkout = () => {
+  // Memoize formatted duration string
+  const formattedDuration = useMemo(() => formatDuration(workoutDuration), [workoutDuration, formatDuration]);
+
+  const handleStartWorkout = useCallback(() => {
     startWorkout();
-  };
+  }, [startWorkout]);
 
-  const handleEndWorkout = async () => {
+  const handleEndWorkout = useCallback(async () => {
     if (user && completedSets.length > 0) {
       try {
         await saveWorkout(user.uid);
       } catch (error) {
-        console.error('Error saving workout:', error);
+        logger.error('Error saving workout', error);
       }
     }
     endWorkout();
-  };
+  }, [user, completedSets.length, saveWorkout, endWorkout]);
 
-  const handleCompleteSet = () => {
+  const handleCompleteSet = useCallback(() => {
     if (currentExercise) {
       setWeight(currentExercise.weight.toString());
     }
     setShowSetModal(true);
-  };
+  }, [currentExercise]);
 
-  const handleSaveSet = () => {
+  const handleSaveSet = useCallback(() => {
     const numReps = parseInt(reps, 10) || 0;
     const numWeight = parseFloat(weight) || 0;
     completeSet(numReps, numWeight);
     setShowSetModal(false);
     setReps('');
     setWeight('');
-  };
+  }, [reps, weight, completeSet]);
 
   // Pre-workout view
   if (!isWorkoutActive) {
@@ -222,7 +226,7 @@ export default function WorkoutScreen() {
         </View>
         <View style={styles.timerContainer}>
           <Text style={styles.timerLabel}>Duration</Text>
-          <Text style={styles.timerValue}>{formatDuration(workoutDuration)}</Text>
+          <Text style={styles.timerValue}>{formattedDuration}</Text>
         </View>
       </View>
 

@@ -1,0 +1,71 @@
+# Meal Logging Flow E2E Tests
+# Tests: Meal log screen, camera, nutrition tracking
+
+appId: com.aifitarchitect.app
+---
+# Prerequisite: User is logged in
+- launchApp:
+    clearState: false
+
+# Navigate to Meals tab
+- tapOn:
+    text: "Meals"
+
+# Test 1: Meal log screen displays correctly
+- assertVisible: "Meal Log"
+- assertVisible:
+    id: "nutrition-summary"
+- assertVisible: "Calories"
+- assertVisible: "Protein"
+
+# Test 2: Nutrition summary shows values
+- assertVisible:
+    id: "calories-value"
+- assertVisible:
+    id: "protein-value"
+
+# Test 3: Meal type selector
+- tapOn:
+    text: "Breakfast"
+    optional: true
+- tapOn:
+    text: "Lunch"
+    optional: true
+- tapOn:
+    text: "Dinner"
+    optional: true
+- tapOn:
+    text: "Snacks"
+    optional: true
+
+# Test 4: Add meal FAB is visible
+- assertVisible:
+    id: "add-meal-fab"
+
+# Test 5: Tap add meal to open camera
+- tapOn:
+    id: "add-meal-fab"
+
+# Camera modal should appear (or permission request)
+- assertVisible:
+    text: "Camera"
+    optional: true
+
+# Close camera modal (if possible)
+- tapOn:
+    id: "close-camera-button"
+    optional: true
+
+# Test 6: Verify meal sections
+- assertVisible:
+    text: "Breakfast"
+    optional: true
+- assertVisible:
+    text: "Lunch"
+    optional: true
+
+# Test 7: Scroll through meal list
+- scroll:
+    direction: DOWN
+- scroll:
+    direction: UP

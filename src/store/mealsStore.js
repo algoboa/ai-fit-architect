@@ -134,3 +134,10 @@ export const useMealsStore = create((set, get) => ({
     });
   },
 }));
+
+// Zustand selectors for optimized re-renders
+export const useTodaysMeals = () => useMealsStore((state) => state.todaysMeals);
+export const useIsAnalyzing = () => useMealsStore((state) => state.isAnalyzing);
+export const useIsLoading = () => useMealsStore((state) => state.isLoading);
+export const useAnalysisResult = () => useMealsStore((state) => state.analysisResult);
+export const useMealsError = () => useMealsStore((state) => state.error);

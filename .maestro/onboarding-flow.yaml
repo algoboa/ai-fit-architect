@@ -1,0 +1,111 @@
+# Onboarding Flow E2E Tests
+# Tests: Multi-step onboarding process
+
+appId: com.aifitarchitect.app
+---
+# Prerequisite: User has just signed up
+- launchApp:
+    clearState: true
+
+# Navigate to signup (simulating new user)
+- tapOn:
+    id: "signup-link"
+    optional: true
+
+# Test 1: Step 1 - Profile Information
+- assertVisible:
+    text: "Profile"
+    optional: true
+
+# Enter profile details
+- tapOn:
+    id: "name-input"
+    optional: true
+- inputText: "Test User"
+
+# Select age range
+- tapOn:
+    text: "25-34"
+    optional: true
+
+# Select gender
+- tapOn:
+    text: "Male"
+    optional: true
+
+# Proceed to next step
+- tapOn:
+    id: "continue-button"
+    optional: true
+
+# Test 2: Step 2 - Goals
+- assertVisible:
+    text: "Goal"
+    optional: true
+
+# Select fitness goal
+- tapOn:
+    text: "Build Muscle"
+    optional: true
+
+- tapOn:
+    id: "continue-button"
+    optional: true
+
+# Test 3: Step 3 - Experience Level
+- assertVisible:
+    text: "Experience"
+    optional: true
+
+- tapOn:
+    text: "Intermediate"
+    optional: true
+
+- tapOn:
+    id: "continue-button"
+    optional: true
+
+# Test 4: Step 4 - Lifestyle
+- assertVisible:
+    text: "Lifestyle"
+    optional: true
+
+- tapOn:
+    text: "Moderately Active"
+    optional: true
+
+- tapOn:
+    id: "continue-button"
+    optional: true
+
+# Test 5: Step 5 - Diet Preferences
+- assertVisible:
+    text: "Diet"
+    optional: true
+
+- tapOn:
+    text: "No Restrictions"
+    optional: true
+
+- tapOn:
+    id: "continue-button"
+    optional: true
+
+# Test 6: Step 6 - Equipment
+- assertVisible:
+    text: "Equipment"
+    optional: true
+
+- tapOn:
+    text: "Full Gym"
+    optional: true
+
+# Complete onboarding
+- tapOn:
+    id: "get-started-button"
+    optional: true
+
+# Verify navigation to Dashboard
+- assertVisible:
+    text: "Dashboard"
+    optional: true

@@ -7,7 +7,18 @@
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",
-    "test": "jest"
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "e2e": "maestro test .maestro/",
+    "e2e:auth": "maestro test .maestro/auth-flow.yaml",
+    "e2e:workout": "maestro test .maestro/workout-flow.yaml",
+    "e2e:meals": "maestro test .maestro/meal-flow.yaml",
+    "e2e:progress": "maestro test .maestro/progress-flow.yaml",
+    "lint": "eslint . --ext .js,.jsx",
+    "lint:fix": "eslint . --ext .js,.jsx --fix",
+    "format": "prettier --write \"src/**/*.js\"",
+    "format:check": "prettier --check \"src/**/*.js\""
   },
   "dependencies": {
     "@expo/vector-icons": "^15.0.3",
@@ -15,7 +26,6 @@
     "@react-navigation/bottom-tabs": "^7.9.0",
     "@react-navigation/native": "^7.1.26",
     "@react-navigation/native-stack": "^7.9.0",
-    "@tensorflow/tfjs": "^4.22.0",
     "expo": "~54.0.31",
     "expo-camera": "^17.0.10",
     "expo-gl": "^16.0.9",

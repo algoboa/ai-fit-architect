@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { View, StyleSheet, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
 import { TextInput, Button, Text, HelperText } from 'react-native-paper';
 import { colors, spacing, borderRadius, typography } from '../../theme';
 import { useAuthStore } from '../../store/authStore';
+import { hapticPatterns } from '../../utils/haptics';
 
 export default function LoginScreen({ navigation }) {
   const [email, setEmail] = useState('');
@@ -13,10 +14,26 @@ export default function LoginScreen({ navigation }) {
 
   const { signIn, isLoading, error, clearError } = useAuthStore();
 
-  const validateEmail = (email) => {
+  const validateEmail = useCallback((email) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(email);
-  };
+  }, []);
+
+  // onBlur validation for email
+  const handleEmailBlur = useCallback(() => {
+    if (email && !validateEmail(email)) {
+      setEmailError('Please enter a valid email');
+      hapticPatterns.validationError();
+    }
+  }, [email, validateEmail]);
+
+  // onBlur validation for password
+  const handlePasswordBlur = useCallback(() => {
+    if (password && password.length < 6) {
+      setPasswordError('Password must be at least 6 characters');
+      hapticPatterns.validationError();
+    }
+  }, [password]);
 
   const handleLogin = async () => {
     clearError();
@@ -77,6 +94,7 @@ export default function LoginScreen({ navigation }) {
               setEmailError('');
               clearError();
             }}
+            onBlur={handleEmailBlur}
             mode="outlined"
             keyboardType="email-address"
             autoCapitalize="none"
@@ -86,6 +104,9 @@ export default function LoginScreen({ navigation }) {
             outlineColor={colors.border}
             activeOutlineColor={colors.primary}
             textColor={colors.text}
+            accessible={true}
+            accessibilityLabel="Email input field"
+            accessibilityHint="Enter your email address"
           />
           {emailError ? (
             <HelperText type="error" visible={!!emailError}>
@@ -102,6 +123,7 @@ export default function LoginScreen({ navigation }) {
               setPasswordError('');
               clearError();
             }}
+            onBlur={handlePasswordBlur}
             mode="outlined"
             secureTextEntry={!showPassword}
             error={!!passwordError}
@@ -109,11 +131,15 @@ export default function LoginScreen({ navigation }) {
             outlineColor={colors.border}
             activeOutlineColor={colors.primary}
             textColor={colors.text}
+            accessible={true}
+            accessibilityLabel="Password input field"
+            accessibilityHint="Enter your password"
             right={
               <TextInput.Icon
                 icon={showPassword ? 'eye-off' : 'eye'}
                 onPress={() => setShowPassword(!showPassword)}
                 color={colors.textSecondary}
+                accessibilityLabel={showPassword ? 'Hide password' : 'Show password'}
               />
             }
           />

@@ -312,3 +312,15 @@ export const useWorkoutStore = create((set, get) => ({
     });
   },
 }));
+
+// Zustand selectors for optimized re-renders
+export const useIsWorkoutActive = () => useWorkoutStore((state) => state.isWorkoutActive);
+export const useIsResting = () => useWorkoutStore((state) => state.isResting);
+export const useRestTimeRemaining = () => useWorkoutStore((state) => state.restTimeRemaining);
+export const useWorkoutDuration = () => useWorkoutStore((state) => state.workoutDuration);
+export const useCurrentExerciseIndex = () => useWorkoutStore((state) => state.currentExerciseIndex);
+export const useCompletedSets = () => useWorkoutStore((state) => state.completedSets);
+export const useIsCameraActive = () => useWorkoutStore((state) => state.isCameraActive);
+export const useFormScore = () => useWorkoutStore((state) => state.formScore);
+export const useFormFeedback = () => useWorkoutStore((state) => state.formFeedback);
+export const usePoseKeypoints = () => useWorkoutStore((state) => state.poseKeypoints);
